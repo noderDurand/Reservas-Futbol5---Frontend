@@ -110,3 +110,67 @@ a { color: var(--verde); }
   .sidebar-nav a { white-space: nowrap; }
   .contenido { padding: 1rem; }
 }
+
+
+/* ---------- Reservar ---------- */
+.grilla-canchas,
+.grilla-turnos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.tarjeta-cancha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1.2rem;
+  text-align: left;
+  border: 2px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.tarjeta-cancha:hover { border-color: var(--verde); }
+.tarjeta-cancha.seleccionada { border-color: var(--verde); background: var(--verde-claro); }
+.tarjeta-cancha span { font-size: 0.85rem; color: var(--texto-suave); }
+
+.grilla-turnos .boton.seleccionado {
+  background: var(--verde-oscuro);
+  outline: 3px solid var(--verde);
+}
+
+/* ---------- Mis Reservas ---------- */
+.lista-reservas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tarjeta-reserva {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.reserva-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.reserva-info span { font-size: 0.9rem; color: var(--texto-suave); }
+
+.estado { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+.estado-pendiente  { color: #b45309; }
+.estado-confirmada { color: var(--verde); }
+.estado-cancelada  { color: var(--error); }
