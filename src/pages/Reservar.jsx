@@ -50,7 +50,7 @@ export default function Reservar() {
     setEnviando(true)
     setErrorEnvio(null)
     try {
-      await crearReserva({ reserva: { cancha_id: canchaId, turno_id: turnoId } })
+      await crearReserva({ reserva: { cancha_id: canchaId, turno_id: turnoId, fecha }})
       setExito(true)
     } catch (e) {
       setErrorEnvio(e.message)
