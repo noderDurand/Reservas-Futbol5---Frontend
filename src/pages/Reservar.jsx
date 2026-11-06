@@ -4,7 +4,29 @@ import { crearReserva } from '../api/reservas'
 import Cargando from '../components/Cargando'
 import MensajeError from '../components/MensajeError'
 
-const HOY = new Date().toISOString().split('T')[0]
+const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+function toISO(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dia}`
+}
+
+function generarProximasFechas(cantidad = 11) {
+  return Array.from({ length: cantidad }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    return d
+  })
+}
+
+function etiquetaDia(d, i) {
+  if (i === 0) return 'Hoy'
+  if (i === 1) return 'Mañana'
+  return DIAS[d.getDay()]
+}
 
 export default function Reservar() {
   
@@ -14,7 +36,7 @@ export default function Reservar() {
   const [canchaId, setCanchaId] = useState(null)
 
   // --- paso 2: elegir fecha y turno ---
-  const [fecha, setFecha] = useState(HOY)
+  const [fecha, setFecha] = useState(toISO(new Date()))
   const [turnos, setTurnos] = useState([])
   const [cargandoTurnos, setCargandoTurnos] = useState(false)
   const [errorTurnos, setErrorTurnos] = useState(null)
@@ -62,7 +84,7 @@ export default function Reservar() {
   function reiniciar() {
     setCanchaId(null)
     setTurnoId(null)
-    setFecha(HOY)
+    setFecha(toISO(new Date()))
     setTurnos([])
     setExito(false)
     setErrorEnvio(null)
@@ -101,6 +123,9 @@ export default function Reservar() {
               className={`tarjeta-cancha boton-secundario${canchaId === c.id ? ' seleccionada' : ''}`}
               onClick={() => setCanchaId(c.id)}
             >
+              {c.foto_url && (
+                <img src={c.foto_url} alt={c.nombre} className='cancha-img'/>
+              )}
               <strong>{c.nombre}</strong>
               {c.descripcion && <span>{c.descripcion}</span>}
             </button>
@@ -112,15 +137,23 @@ export default function Reservar() {
       {canchaId && (
         <>
           <h2>2. Elegí fecha y turno</h2>
-          <label htmlFor="fecha">Fecha</label>
-          <input
-            id="fecha"
-            type="date"
-            min={HOY}
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-          />
-
+          <div className="grilla-fechas">
+            {generarProximasFechas().map((d, i) => {
+              const iso = toISO(d)
+              return (
+                <button
+                  key={iso}
+                  type="button"
+                  className={`tarjeta-fecha${fecha === iso ? ' seleccionada' : ''}`}
+                  onClick={() => setFecha(iso)}
+                >
+                  <span className="fecha-dia-nombre">{etiquetaDia(d, i)}</span>
+                  <span className="fecha-numero">{d.getDate()}</span>
+                  <span className="fecha-mes">{MESES[d.getMonth()]}</span>
+                </button>
+              )
+            })}
+          </div>
           {cargandoTurnos && <Cargando texto="Cargando turnos…" />}
           {errorTurnos && <MensajeError mensaje={errorTurnos} />}
           {!cargandoTurnos && !errorTurnos && turnos.length === 0 && (
