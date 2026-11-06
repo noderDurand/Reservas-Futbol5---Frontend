@@ -3,6 +3,7 @@ import { listarCanchas, turnosDisponibles } from '../api/canchas'
 import { crearReserva } from '../api/reservas'
 import Cargando from '../components/Cargando'
 import MensajeError from '../components/MensajeError'
+import PagoReserva from '../components/PagoReserva'
 
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
@@ -44,7 +45,7 @@ export default function Reservar() {
 
   // --- paso 3: confirmar ---
   const [enviando, setEnviando] = useState(false)
-  const [exito, setExito] = useState(false)
+  const [reservaCreada, setReservaCreada] = useState(null)
   const [errorEnvio, setErrorEnvio] = useState(null)
 
   // Cargar canchas al montar
@@ -72,8 +73,8 @@ export default function Reservar() {
     setEnviando(true)
     setErrorEnvio(null)
     try {
-      await crearReserva({ reserva: { cancha_id: canchaId, turno_id: turnoId, fecha }})
-      setExito(true)
+      const nueva = await crearReserva({ reserva: { cancha_id: canchaId, turno_id: turnoId, fecha }})
+      setReservaCreada(nueva)
     } catch (e) {
       setErrorEnvio(e.message)
     } finally {
@@ -86,20 +87,20 @@ export default function Reservar() {
     setTurnoId(null)
     setFecha(toISO(new Date()))
     setTurnos([])
-    setExito(false)
+    setReservaCreada(null)
     setErrorEnvio(null)
   }
 
-  if (exito) {
+  // La reserva queda pendiente hasta que se paga (QR): mostramos el pago
+  if (reservaCreada) {
     return (
       <section>
         <h1>Reservar</h1>
-        <div className="alerta alerta-exito" role="status">
-          <p>✅ ¡Reserva confirmada!</p>
-          <button type="button" className="boton" onClick={reiniciar}>
-            Hacer otra reserva
-          </button>
-        </div>
+        <PagoReserva
+          reservaInicial={reservaCreada}
+          onTerminar={reiniciar}
+          textoTerminar="Hacer otra reserva"
+        />
       </section>
     )
   }
@@ -187,7 +188,7 @@ export default function Reservar() {
             onClick={confirmar}
             disabled={enviando}
           >
-            {enviando ? 'Confirmando…' : 'Confirmar reserva'}
+            {enviando ? 'Reservando…' : 'Reservar y pagar'}
           </button>
         </>
       )}

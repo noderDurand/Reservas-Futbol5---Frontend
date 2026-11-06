@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
-import { listarReservas, cancelarReserva } from '../api/reservas'
+import { listarReservas, cancelarReserva, obtenerReserva } from '../api/reservas'
 import Cargando from '../components/Cargando'
 import MensajeError from '../components/MensajeError'
+import PagoReserva from '../components/PagoReserva'
 
 export default function MisReservas() {
   const [reservas, setReservas] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [cancelando, setCancelando] = useState(null) // id en proceso
+  const [pagando, setPagando] = useState(null) // reserva cuyo QR se está mostrando
+  const [abriendoPago, setAbriendoPago] = useState(null) // id en proceso
 
   function cargar() {
     setCargando(true)
@@ -36,6 +39,36 @@ export default function MisReservas() {
     }
   }
 
+  // Abre la pantalla de pago: pide la reserva completa porque el listado no trae el QR
+  async function handlePagar(id) {
+    setAbriendoPago(id)
+    try {
+      setPagando(await obtenerReserva(id))
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setAbriendoPago(null)
+    }
+  }
+
+  function cerrarPago() {
+    setPagando(null)
+    cargar() // el estado pudo cambiar (confirmada / cancelada)
+  }
+
+  if (pagando) {
+    return (
+      <section>
+        <h1>Mis reservas</h1>
+        <PagoReserva
+          reservaInicial={pagando}
+          onTerminar={cerrarPago}
+          textoTerminar="Volver a mis reservas"
+        />
+      </section>
+    )
+  }
+
   if (cargando) return <Cargando texto="Cargando tus reservas…" />
   if (error) return <MensajeError mensaje={error} onReintentar={cargar} />
 
@@ -60,14 +93,26 @@ export default function MisReservas() {
               <span className={`estado estado-${r.estado}`}>{r.estado}</span>
             </div>
             {r.estado !== 'cancelada' && (
-              <button
-                type="button"
-                className="boton boton-secundario"
-                onClick={() => handleCancelar(r.id)}
-                disabled={cancelando === r.id}
-              >
-                {cancelando === r.id ? 'Cancelando…' : 'Cancelar'}
-              </button>
+              <div className="reserva-acciones">
+                {r.estado === 'pendiente' && (
+                  <button
+                    type="button"
+                    className="boton"
+                    onClick={() => handlePagar(r.id)}
+                    disabled={abriendoPago === r.id}
+                  >
+                    {abriendoPago === r.id ? 'Abriendo…' : 'Pagar'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="boton boton-secundario"
+                  onClick={() => handleCancelar(r.id)}
+                  disabled={cancelando === r.id}
+                >
+                  {cancelando === r.id ? 'Cancelando…' : 'Cancelar'}
+                </button>
+              </div>
             )}
           </li>
         ))}
