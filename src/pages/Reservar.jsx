@@ -56,16 +56,42 @@ export default function Reservar() {
       .finally(() => setCargandoCanchas(false))
   }, [])
 
+  function seleccionarCancha(id) {
+    setCanchaId(id)
+    setTurnoId(null)
+    setTurnos([])
+    setCargandoTurnos(true)
+    setErrorTurnos(null)
+  }
+
+  function seleccionarFecha(iso) {
+    setFecha(iso)
+    setTurnoId(null)
+    setTurnos([])
+    setCargandoTurnos(true)
+    setErrorTurnos(null)
+  }
+
   // Cargar turnos cada vez que cambia cancha o fecha
   useEffect(() => {
     if (!canchaId) return
-    setCargandoTurnos(true)
-    setErrorTurnos(null)
-    setTurnoId(null)
+    let activo = true
     turnosDisponibles(canchaId, fecha)
-      .then(setTurnos)
-      .catch((e) => setErrorTurnos(e.message))
-      .finally(() => setCargandoTurnos(false))
+      .then((datos) => {
+        if (activo) {
+          setTurnos(datos)
+          setErrorTurnos(null)
+        }
+      })
+      .catch((e) => {
+        if (activo) setErrorTurnos(e.message)
+      })
+      .finally(() => {
+        if (activo) setCargandoTurnos(false)
+      })
+    return () => {
+      activo = false
+    }
   }, [canchaId, fecha])
 
   async function confirmar() {
@@ -122,7 +148,7 @@ export default function Reservar() {
               key={c.id}
               type="button"
               className={`tarjeta-cancha boton-secundario${canchaId === c.id ? ' seleccionada' : ''}`}
-              onClick={() => setCanchaId(c.id)}
+              onClick={() => seleccionarCancha(c.id)}
             >
               {c.foto_url && (
                 <img src={c.foto_url} alt={c.nombre} className='cancha-img'/>
@@ -146,7 +172,7 @@ export default function Reservar() {
                   key={iso}
                   type="button"
                   className={`tarjeta-fecha${fecha === iso ? ' seleccionada' : ''}`}
-                  onClick={() => setFecha(iso)}
+                  onClick={() => seleccionarFecha(iso)}
                 >
                   <span className="fecha-dia-nombre">{etiquetaDia(d, i)}</span>
                   <span className="fecha-numero">{d.getDate()}</span>

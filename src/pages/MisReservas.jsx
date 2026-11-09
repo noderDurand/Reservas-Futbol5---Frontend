@@ -12,7 +12,7 @@ export default function MisReservas() {
   const [pagando, setPagando] = useState(null) // reserva cuyo QR se está mostrando
   const [abriendoPago, setAbriendoPago] = useState(null) // id en proceso
 
-  function cargar() {
+  function recargar() {
     setCargando(true)
     setError(null)
     listarReservas()
@@ -21,7 +21,22 @@ export default function MisReservas() {
       .finally(() => setCargando(false))
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    let activo = true
+    listarReservas()
+      .then((datos) => {
+        if (activo) setReservas(datos)
+      })
+      .catch((e) => {
+        if (activo) setError(e.message)
+      })
+      .finally(() => {
+        if (activo) setCargando(false)
+      })
+    return () => {
+      activo = false
+    }
+  }, [])
 
   async function handleCancelar(id) {
     if (!confirm('¿Seguro que querés cancelar esta reserva?')) return
@@ -53,7 +68,7 @@ export default function MisReservas() {
 
   function cerrarPago() {
     setPagando(null)
-    cargar() // el estado pudo cambiar (confirmada / cancelada)
+    recargar() // el estado pudo cambiar (confirmada / cancelada)
   }
 
   if (pagando) {
@@ -70,7 +85,7 @@ export default function MisReservas() {
   }
 
   if (cargando) return <Cargando texto="Cargando tus reservas…" />
-  if (error) return <MensajeError mensaje={error} onReintentar={cargar} />
+  if (error) return <MensajeError mensaje={error} onReintentar={recargar} />
 
   if (reservas.length === 0) {
     return (

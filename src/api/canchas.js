@@ -1,4 +1,3 @@
-import { data } from "react-router-dom";
 import { api } from "./client";
 
 export const listarCanchas = () => api('/canchas').then((data) => {
@@ -9,6 +8,6 @@ export const listarCanchas = () => api('/canchas').then((data) => {
     }))
 })
 
-export const obetenerCanchas = () => api(`/canchas/${id}`)
+export const obtenerCancha = (id) => api(`/canchas/${id}`)
 
 export const turnosDisponibles = (canchaId, fecha) => api(`/canchas/${canchaId}/turnos_disponibles?fecha=${fecha}`) 
